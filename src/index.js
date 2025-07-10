@@ -1,17 +1,27 @@
+// --- src/index.js ---
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+// Create an Apollo Client instance
+const client = new ApolloClient({
+  // Use the environment variable for the API URL and add /graphql
+  uri: `${process.env.REACT_APP_API_URL}/graphql`,
+  cache: new InMemoryCache(),
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+// Wrap your App with the ApolloProvider
 root.render(
   <React.StrictMode>
-    <App />
+    <ApolloProvider client={client}>
+      <App />
+    </ApolloProvider>
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
