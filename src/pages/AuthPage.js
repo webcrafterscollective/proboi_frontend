@@ -1,10 +1,10 @@
-// --- src/pages/AuthPage.js ---
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Logo from '../components/Logo';
 
 const AuthPage = ({ mode, navigateTo }) => {
-    const { login } = useAuth();
+    const { login, register } = useAuth();
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -15,7 +15,11 @@ const AuthPage = ({ mode, navigateTo }) => {
         e.preventDefault();
         setError(null);
         try {
-            await login({ username: email, password });
+            if (isLogin) {
+                await login({ username: email, password });
+            } else {
+                await register({ name, email, password });
+            }
             navigateTo('home');
         } catch (err) {
             setError(err.message);
@@ -38,6 +42,19 @@ const AuthPage = ({ mode, navigateTo }) => {
                     </div>
                     {error && <p className="text-red-500 text-center mb-4">{error}</p>}
                     <form className="space-y-6" onSubmit={handleSubmit}>
+                        {!isLogin && (
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 block mb-2">Name</label>
+                                <input
+                                    type="text"
+                                    placeholder="John Doe"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#F6F5FF] border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-accent"
+                                    required
+                                />
+                            </div>
+                        )}
                         <div>
                             <label className="text-sm font-medium text-gray-700 block mb-2">E-mail</label>
                             <input

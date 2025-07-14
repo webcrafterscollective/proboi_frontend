@@ -1,42 +1,92 @@
-// --- src/contexts/CartContext.js ---
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from ''
+import { useAuth } from './AuthContext'
+import api from '../utils/api'
 
-export const CartContext = createContext();
+export const CartContext = createContext()
 
 export const CartProvider = ({ children }) => {
-  const [items, setItems] = useState([]);
+  const { token } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
-  const addToCart = (book) => {
-    setItems(prevItems => {
-      const existing = prevItems.find(item => item.id === book.id);
-      if (existing) {
-        return prevItems.map(item =>
-          item.id === book.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prevItems, { ...book, quantity: 1 }];
-    });
-  };
+  const fetchCart = async () => {
+    if (!token) return
+    setLoading(true)
+    try {
+      const cart = await api.getCart(token)
+      setItems(cart.items || [])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const removeFromCart = (bookId) =>
-    setItems(prev => prev.filter(item => item.id !== bookId));
+  useEffect(() => {
+    fetchCart()
+  }, [token])
 
-  const clearCart = () => setItems([]);
+  const addToCart = async (bookId, quantity) => {
+    if (!token) {
+      setError('You must be logged in to add items to the cart.')
+      return
+    }
+    setLoading(true)
+    try {
+      await api.addToCart(token, { id: bookId, quantity })
+      await fetchCart()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const removeFromCart = async (itemId) => {
+    if (!token) return
+    setLoading(true)
+    try {
+      await api.removeFromCart(token, itemId)
+      await fetchCart()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const clearCart = async () => {
+    if (!token) return
+    setLoading(true)
+    try {
+      await api.clearCart(token)
+      setItems([])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const total = items.reduce((sum, item) => sum + item.totals.total, 0)
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, removeFromCart, clearCart, total }}
+      value={{
+        items,
+        total,
+        loading,
+        error,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        fetchCart,
+      }}
     >
       {children}
     </CartContext.Provider>
-  );
-};
+  )
+}
 
 export const useCart = () => useContext(CartContext);
