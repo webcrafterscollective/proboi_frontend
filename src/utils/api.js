@@ -13,8 +13,8 @@ const api = {
   // Checkout
   checkout: (token, data) => post('/wc/v3/checkout', data, { 'Authorization': `Bearer ${token}` }),
 
-  // Orders
-  getOrders: (token) => get('/wc/v3/orders', { 'Authorization': `Bearer ${token}` }),
+  // Orders are fetched via a secure server-side endpoint
+  getOrders: (token) => get('/my-custom-api/v1/orders', { 'Authorization': `Bearer ${token}` }),
 };
 
 export default api;
@@ -41,12 +41,17 @@ async function request(method, endpoint, body, headers = {}) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url, options);
+  try {
+    const response = await fetch(url, options);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Something went wrong');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('API request error:', error);
+    throw new Error('Network error or server is not responding.');
   }
-
-  return response.json();
 }

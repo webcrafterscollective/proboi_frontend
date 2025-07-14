@@ -1,10 +1,10 @@
 // --- src/pages/AccountDashboardPage.js ---
 import React, { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import OrderHistoryPage from './OrderHistoryPage';
+import { useAuth } from '../contexts/AuthContext';
 
 const AccountDashboardPage = ({ navigateTo }) => {
-    const { user, orders, loading } = useAuth();
+    const { user, loading } = useAuth();
 
     useEffect(() => {
         if (!loading && !user) {
@@ -24,11 +24,7 @@ const AccountDashboardPage = ({ navigateTo }) => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome, {user.name}!</h1>
             <p className="text-gray-600 mb-8">Manage your account and view your orders.</p>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-4">Order History</h2>
-                    <OrderHistoryPage orders={orders} navigateTo={navigateTo} />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-semibold mb-4">Account Settings</h2>
                     <div className="space-y-4">
@@ -40,8 +36,20 @@ const AccountDashboardPage = ({ navigateTo }) => {
                             <p className="text-sm text-gray-500">Email</p>
                             <p className="font-semibold">{user.email}</p>
                         </div>
-                        <button className="mt-4 bg-primary-accent text-white font-bold py-2 px-4 rounded-lg">Edit Profile</button>
+                        <button className="mt-4 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
+                            Edit Profile
+                        </button>
                     </div>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">Order History</h2>
+                    <p className="text-gray-600 mb-4">View your past orders and track their status.</p>
+                    <button
+                        onClick={() => navigateTo('orderHistory')}
+                        className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                        View Orders
+                    </button>
                 </div>
             </div>
         </div>

@@ -1,25 +1,61 @@
-// --- src/pages/OrderHistoryPage.js ---
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import api from '../utils/api';
 
-const OrderHistoryPage = ({ orders, navigateTo, limit }) => {
-    // Ensure orders is an array before slicing
-    const displayOrders = limit && Array.isArray(orders) ? orders.slice(0, limit) : (Array.isArray(orders) ? orders : []);
+const OrderHistoryPage = ({ navigateTo }) => {
+    const { token } = useAuth();
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    if (!displayOrders.length) {
-        return <p className="text-gray-500">You have no orders yet.</p>;
+    useEffect(() => {
+        const fetchOrders = async () => {
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+            try {
+                const fetchedOrders = await api.getOrders(token);
+                setOrders(fetchedOrders);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrders();
+    }, [token]);
+
+    if (loading) {
+        return <div className="text-center p-8">Loading orders...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center p-8 text-red-500">Error: {error}</div>;
+    }
+
+    if (orders.length === 0) {
+        return (
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                <h1 className="text-3xl font-bold text-gray-800 mb-8">My Orders</h1>
+                <p className="text-gray-500">You have no orders yet.</p>
+            </div>
+        );
     }
 
     return (
-        <div className={!limit ? "container mx-auto px-4 sm:px-6 lg:px-8 mt-8" : ""}>
-            {!limit && <h1 className="text-3xl font-bold text-gray-800 mb-8">My Orders</h1>}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8">My Orders</h1>
             <div className="space-y-4">
-                {displayOrders.map(order => (
+                {orders.map(order => (
                     <div key={order.id} className="bg-white p-4 rounded-lg shadow-sm border">
                         <div className="flex justify-between items-center flex-wrap gap-2">
                             <div className="font-semibold">Order #{order.id}</div>
-                            <div className="text-sm text-gray-500">{order.date_created ? new Date(order.date_created).toLocaleDateString() : 'N/A'}</div>
-                            <div className={`capitalize text-sm font-medium px-2 py-1 rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.status}</div>
-                            <div className="font-semibold">{order.total} {order.currency}</div>
+                            <div className="text-sm text-gray-500">{new Date(order.date_created).toLocaleDateString()}</div>
+                            <div className={`capitalize text-sm font-medium px-2 py-1 rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                {order.status}
+                            </div>
+                            <div className="font-semibold">${order.total}</div>
                         </div>
                     </div>
                 ))}

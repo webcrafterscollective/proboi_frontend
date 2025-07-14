@@ -4,8 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 
 const CheckoutPage = ({ navigateTo }) => {
-  const { total, clearCart } = useCart();
-  const { token } = useAuth();
+  const { items, total, clearCart } = useCart();
+  const { user, token } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     address: '',
@@ -34,7 +34,7 @@ const CheckoutPage = ({ navigateTo }) => {
           last_name: formData.fullName.split(' ').slice(1).join(' '),
           address_1: formData.address,
           country: 'US',
-          email: 'customer@example.com', // Replace with actual user email
+          email: user.email,
           phone: '123456789',
         },
         shipping: {
@@ -43,7 +43,10 @@ const CheckoutPage = ({ navigateTo }) => {
           address_1: formData.address,
           country: 'US',
         },
-        line_items: [], // This should be populated from the cart
+        line_items: items.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+        })),
       });
       clearCart();
       alert('Thank you for your order!');

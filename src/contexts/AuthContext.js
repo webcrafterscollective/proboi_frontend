@@ -6,7 +6,6 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +17,6 @@ export const AuthProvider = ({ children }) => {
           const storedUser = JSON.parse(localStorage.getItem('user'));
           setToken(storedToken);
           if(storedUser) setUser(storedUser);
-          fetchOrders(storedToken);
         } catch (error) {
           logout();
         }
@@ -37,7 +35,6 @@ export const AuthProvider = ({ children }) => {
       setToken(data.token);
       localStorage.setItem('jwt_token', data.token);
       localStorage.setItem('user', JSON.stringify(userToSet));
-      fetchOrders(data.token);
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -57,23 +54,12 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    setOrders([]);
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('user');
   };
 
-  const fetchOrders = async (authToken) => {
-    try {
-      const orderData = await api.getOrders(authToken);
-      setOrders(Array.isArray(orderData) ? orderData : []);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-      setOrders([]);
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, token, orders, loading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
